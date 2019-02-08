@@ -1,0 +1,81 @@
+package main.java.results.arithmetic;
+import java.text.ParseException;
+import java.util.*;
+import java.util.regex.*;
+
+
+public class ArithmeticLexer {
+
+    private String input;
+    private int curPos;
+    private ArithmeticToken curToken;
+    private Map<ArithmeticToken, Pattern> regex;
+    private Pattern patternWS;
+    private Matcher m;
+
+    public ArithmeticLexer(String input) {
+        this.input = input;
+        curPos = 0;
+        setRegex();
+        patternWS = Pattern.compile("[ \n\r\t]+");
+        m = Pattern.compile("").matcher(input);
+    }
+
+    private void setRegex() {
+        regex = new HashMap<>();
+        regex.put(ArithmeticToken.ADD, Pattern.compile("[+]"));
+        regex.put(ArithmeticToken.SUB, Pattern.compile("[-]"));
+        regex.put(ArithmeticToken.MUL, Pattern.compile("[*]"));
+        regex.put(ArithmeticToken.DIV, Pattern.compile("[/]"));
+        regex.put(ArithmeticToken.POW, Pattern.compile("\\^"));
+        regex.put(ArithmeticToken.OP, Pattern.compile("[(]"));
+        regex.put(ArithmeticToken.CP, Pattern.compile("[)]"));
+        regex.put(ArithmeticToken.NUM, Pattern.compile("([1-9][0-9]*)|(0)"));
+        regex.put(ArithmeticToken.END, Pattern.compile("$"));
+    }
+
+    private void skipWhiteSpaces() {
+        m.usePattern(patternWS);
+        m.region(curPos, input.length());
+        if (m.lookingAt()) {
+            curPos += m.end() - m.start();
+        }
+    }    private boolean findNextToken() {
+        for (ArithmeticToken t : ArithmeticToken.values()) {
+            m.usePattern(regex.get(t));
+            m.region(curPos, input.length());
+            if (m.lookingAt()) {
+                curToken = t;
+                curPos += m.end() - m.start();
+                return true;
+            }
+        }
+        return false;
+    }    public void nextToken() throws ParseException {
+        if (curPos == input.length()) {
+            curToken = ArithmeticToken.END;
+            return;
+        }
+        skipWhiteSpaces();
+        if (curPos == input.length()) {
+            curToken = ArithmeticToken.END;
+            return;
+        }
+        if (!findNextToken()) {
+            throw new ParseException("Illegal character at", curPos);
+        }
+    }
+
+    public String getLexeme() {
+        return m.group();
+    }
+
+    public int getCurPos() {
+        return curPos;
+    }
+
+    public ArithmeticToken getCurToken() {
+        return curToken;
+    }
+
+}

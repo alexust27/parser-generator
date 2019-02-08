@@ -1,0 +1,46 @@
+grammar Logic
+expr
+
+expr return[v : String]
+            : x e2      {$v = x.v + e2.v;}
+            ;
+
+e2 return [v : String]
+            : OR x e2 { $v = "|" + x.v + e2.v; }
+            | { $v = ""; }
+            ;
+
+x return [v : String]
+            : c x2 {$v = c.v + x2.v; }
+            ;
+
+
+x2 return [v : String]
+            : XOR c x2 { $v = "^" + c.v + x2.v; }
+            | { $v = ""; }
+            ;
+
+c return [v : String]
+            : vv c2 {$v = vv.v + c2.v; }
+            ;
+
+c2 return [v : String]
+            : AND vv c2 { $v = "&" + vv.v + c2.v; }
+            | { $v = ""; }
+            ;
+
+
+vv return [v : String]
+            : NOT vv        { $v = NOT + vv.v; }
+            | VAR           { $v = VAR; }
+            | OP expr CP    { $v = OP + expr.v + CP;}
+            ;
+
+AND : "&";
+OR : "|";
+OP : "(";
+CP : ")";
+XOR : "^";
+NOT : "!";
+VAR :: "[a-z]+";
+skip -> "[ \n\t\r]+";

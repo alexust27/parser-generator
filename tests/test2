@@ -1,0 +1,50 @@
+grammar Arithmetic
+addSub
+
+addSub return [v : int]
+            : mulDiv addSub2({mulDiv.v})
+              {$v = addSub2.v;}
+            ;
+
+addSub2 (left : int) return [v : int]
+            : ADD mulDiv    {int next = left + mulDiv.v;}
+              addSub2(next) {$v = addSub2.v;}
+            | SUB mulDiv    {int next = left - mulDiv.v;}
+              addSub2(next) {$v = addSub2.v;}
+            | {$v = left;}
+            ;
+
+mulDiv return [v : int]
+            : pow mulDiv2({pow.v}) {$v = mulDiv2.v;}
+            ;
+
+mulDiv2 (left : int) return [v : int]
+            : MUL pow mulDiv2({left * pow.v}) {$v = mulDiv2.v;}
+            | DIV pow mulDiv2({left / pow.v}) {$v = mulDiv2.v;}
+            | {$v = left;}
+            ;
+
+
+pow return [v : int]
+            : unary pow2({unary.v}) {$v = pow2.v;}
+            ;
+
+pow2 (left : int) return [v : int]
+            : POW pow {$v = (int) Math.pow(left, pow.v);}
+            | {$v = left;}
+            ;
+
+unary return [v : int]
+            : OP addSub CP {$v = addSub.v;}
+            | NUM          {$v = Integer.valueOf(NUM);}
+            ;
+
+ADD : "+";
+SUB : "-";
+MUL : "*";
+DIV : "/";
+POW : "^";
+OP  : "(";
+CP  : ")";
+NUM :: "([1-9][0-9]*)|(0)";
+skip -> "[ \n\r\t]+";
